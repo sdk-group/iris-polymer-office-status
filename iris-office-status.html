@@ -1,0 +1,50 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="iris-office-status">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+
+      .yellow-button {
+        text-transform: none;
+        color: #eeff41;
+      }
+
+      #warrning {
+        --paper-toast-background-color: red;
+        --paper-toast-color: white;
+      }
+    </style>
+    <iris-workstation id="workstation" office="{{status}}"></iris-workstation>
+    <paper-toast id="warrning" duration="0" class="fit-bottom" text="This toast will stay opened until you close it, or open another toast.">
+      <paper-button onclick="warrning.toggle()" class="yellow-button">x</paper-button>
+    </paper-toast>
+  </template>
+  <script>
+    Polymer({
+      is: 'iris-office-status',
+      properties: {
+        status: {
+          type: Object
+        },
+        redZone: {
+          type: Number,
+          value: 12000
+        }
+      },
+      observers: ['_statusChanged(status.*)'],
+      attached: function() {
+        console.log('im on');
+      },
+      _statusChanged(s) {
+        if (this.status["average-waiting-time"] > this.redZone) this.$.warrning.open();
+      }
+    });
+  </script>
+</dom-module>
+odule>
+
+</dom-module>
+odule>
