@@ -19,7 +19,7 @@
     </style>
     <iris-workstation id="workstation" office="{{status}}"></iris-workstation>
     <paper-toast id="warrning" duration="0" class="fit-bottom" text="This toast will stay opened until you close it, or open another toast.">
-      <paper-button onclick="warrning.toggle()" class="yellow-button">x</paper-button>
+      <paper-button on-tap="notificationClose" class="yellow-button">x</paper-button>
     </paper-toast>
   </template>
   <script>
@@ -35,11 +35,21 @@
         }
       },
       observers: ['_statusChanged(status.*)'],
+      ready(){
+        this.canDisturb = true;
+        this.quiet_interval = 30000;
+      },
       attached: function() {
         console.log('im on');
       },
       _statusChanged(s) {
-        if (this.status["average-waiting-time"] > this.redZone) this.$.warrning.open();
+        if (this.status["average-waiting-time"] > this.redZone) this.canDisturb && this.$.warrning.open();
+      },
+      notificationClose(){
+        this.$.warrning.open();
+        this.canDisturb = false;
+        
+        setTimeout(()=> this.canDisturb = true, this.quiet_interval);
       }
     });
   </script>
