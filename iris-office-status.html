@@ -7,19 +7,32 @@
         display: block;
       }
 
-      .yellow-button {
-        text-transform: none;
-        color: #eeff41;
+      #warrning {
+        @apply(--layout-horizontal);
+        @apply(--layout-justified);
+        @apply(--layout-center);
       }
 
-      #warrning {
-        --paper-toast-background-color: red;
+      .high {
+        --paper-toast-background-color: var(--google-red-500, red);
+        --paper-toast-color: white;
+      }
+
+      .normal {
+        --paper-toast-background-color: var(--paper-amber-400, yellow);
+        --paper-toast-color: white;
+      }
+
+      .low {
+        --paper-toast-background-color: var(--paper-green-400, green);
         --paper-toast-color: white;
       }
     </style>
     <iris-workstation id="workstation" office="{{status}}"></iris-workstation>
-    <paper-toast id="warrning" duration="0" class="fit-bottom" text="This toast will stay opened until you close it, or open another toast.">
-      <paper-button on-tap="notificationClose" class="yellow-button">x</paper-button>
+    <iris-shared-entities namespace="office" key="notification_levels" value="{{levels}}"></iris-shared-entities>
+
+    <paper-toast id="warrning" duration="0" class$="[[code]] fit-bottom" text="[[message]]">
+      <paper-icon-button icon="close" on-tap="notificationClose"></paper-icon-button>
     </paper-toast>
   </template>
   <script>
@@ -28,28 +41,30 @@
       properties: {
         status: {
           type: Object
-        },
-        redZone: {
-          type: Number,
-          value: 12000
         }
       },
       observers: ['_statusChanged(status.*)'],
-      ready(){
+      ready() {
         this.canDisturb = true;
         this.quiet_interval = 30000;
       },
-      attached: function() {
-        console.log('im on');
-      },
       _statusChanged(s) {
-        if (this.status["average-waiting-time"] > this.redZone) this.canDisturb && this.$.warrning.open();
-      },
-      notificationClose(){
+        let param_name = "max-waiting-time";
+        let value = _.get(this.status, param_name);
+        let levels = _.get(this.levels, param_name);
+        let level = _.reduce(levels, (current, param) => value > param.value && (current.value < param.value || !current) ? param : current, false);
+
+        if (!level || !this.canDisturb) return this.$.warrning.close();
+        this.set('message', level.message);
+        this.set('code', level.code);
         this.$.warrning.open();
+        this.updateStyles();
+      },
+      notificationClose() {
+        this.$.warrning.close();
         this.canDisturb = false;
-        
-        setTimeout(()=> this.canDisturb = true, this.quiet_interval);
+
+        setTimeout(() => this.canDisturb = true, this.quiet_interval);
       }
     });
   </script>
