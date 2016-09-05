@@ -31,8 +31,8 @@
     <iris-workstation id="workstation" office="{{status}}"></iris-workstation>
     <iris-shared-entities namespace="office" key="notification_levels" value="{{levels}}"></iris-shared-entities>
 
-    <paper-toast id="warrning" duration="0" class$="[[code]] fit-bottom" text="[[message]]">
-      <paper-icon-button icon="close" on-tap="notificationClose"></paper-icon-button>
+    <paper-toast id="warrning" duration="-1" class$="[[code]] fit-bottom" text="[[message]]">
+      <paper-icon-button icon="close" hidden$="[[canHide(quiet_interval)]]" on-tap="notificationClose"></paper-icon-button>
     </paper-toast>
   </template>
   <script>
@@ -44,6 +44,9 @@
         }
       },
       observers: ['_statusChanged(status.*)'],
+      canHide(quiet_interval) {
+        return quiet_interval == 0;
+      },
       ready() {
         this.canDisturb = true;
         this.quiet_interval = 30000;
@@ -54,11 +57,21 @@
         let levels = _.get(this.levels, param_name);
         let level = _.reduce(levels, (current, param) => value > param.value && (current.value < param.value || !current) ? param : current, false);
 
+        let code_changed = level && this.code != level.code;
+
+        if (code_changed) {
+          this.canDisturb = true;
+        }
         if (!level || !this.canDisturb) return this.$.warrning.close();
+        console.log('Level reached', level);
+        this.quiet_interval = level.dnd * 1000;
         this.set('message', level.message);
         this.set('code', level.code);
-        this.$.warrning.open();
+
+        code_changed && this.$.warrning.close();
+
         this.updateStyles();
+        this.$.warrning.open();
       },
       notificationClose() {
         this.$.warrning.close();
