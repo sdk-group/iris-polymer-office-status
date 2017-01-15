@@ -27,6 +27,7 @@
         --paper-toast-background-color: var(--paper-green-400, green);
         --paper-toast-color: white;
       }
+
     </style>
     <iris-workstation id="workstation" office="{{status}}"></iris-workstation>
     <iris-shared-entities namespace="office" key="notification_levels" value="{{levels}}"></iris-shared-entities>
@@ -55,15 +56,18 @@
         let param_name = "max-waiting-time";
         let value = _.get(this.status, param_name);
         let levels = _.get(this.levels, param_name);
-        let level = _.reduce(levels, (current, param) => value > param.value && (current.value < param.value || !current) ? param : current, false);
+        let level = _.reduce(levels, (current, param) => value > param.value && (current.value < param.value || !current)
+          ? param
+          : current, false);
 
         let code_changed = level && this.code != level.code;
 
         if (code_changed) {
           this.canDisturb = true;
         }
-        if (!level || !this.canDisturb) return this.$.warrning.close();
-        console.log('Level reached', level);
+        if (!level || !this.canDisturb)
+          return this.$.warrning.close();
+
         this.quiet_interval = level.dnd * 1000;
         this.set('message', level.message);
         this.set('code', level.code);
@@ -85,4 +89,3 @@
 odule>
 
 </dom-module>
-odule>
